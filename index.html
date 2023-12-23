@@ -1,54 +1,65 @@
-javascript:(function() {
-  const url = 'https://nomadmania.com/webapi/series/get-for-region';
-  const formData = new URLSearchParams();
-  formData.append('region', '675');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KML Generator</title>
+</head>
+<body>
 
-  const headers = {
-    'Content-Type': 'application/x-www-form-urlencoded',
-  };
+  <script>
+    const url = 'https://nomadmania.com/webapi/series/get-for-region';
+    const formData = new URLSearchParams();
+    formData.append('region', '675');
 
-  // Make a POST request using Fetch API
-  fetch(url, {
-    method: 'POST',
-    headers: headers,
-    body: formData,
-  })
-    .then(response => response.json())
-    .then(data => {
-      // Extracting information and creating KML
-      const kmlContent = createKML(data);
-      downloadFile(kmlContent, 'locations.kml');
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+
+    // Make a POST request using Fetch API
+    fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: formData,
     })
-    .catch(error => console.error('Error:', error));
+      .then(response => response.json())
+      .then(data => {
+        // Extracting information and creating KML
+        const kmlContent = createKML(data);
+        downloadFile(kmlContent, 'locations.kml');
+      })
+      .catch(error => console.error('Error:', error));
 
-  function createKML(data) {
-    let kml = `<?xml version="1.0" encoding="UTF-8"?>
-    <kml xmlns="http://www.opengis.net/kml/2.2">
-    `;
+    function createKML(data) {
+      let kml = `<?xml version="1.0" encoding="UTF-8"?>
+      <kml xmlns="http://www.opengis.net/kml/2.2">
+      `;
 
-    data.data.forEach(location => {
+      data.data.forEach(location => {
+        kml += `
+      <Placemark>
+        <name>${location.n}</name>
+        <description>${location.d}</description>
+        <Point>
+          <coordinates>${location.g},${location.l}</coordinates>
+        </Point>
+      </Placemark>`;
+      });
+
       kml += `
-    <Placemark>
-      <name>${location.n}</name>
-      <description>${location.d}</description>
-      <Point>
-        <coordinates>${location.g},${location.l}</coordinates>
-      </Point>
-    </Placemark>`;
-    });
+    </kml>`;
+      return kml;
+    }
 
-    kml += `
-  </kml>`;
-    return kml;
-  }
+    function downloadFile(content, fileName) {
+      const blob = new Blob([content], { type: 'application/xml' });
+      const link = document.createElement('a');
 
-  function downloadFile(content, fileName) {
-    const blob = new Blob([content], { type: 'application/xml' });
-    const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = fileName;
+      link.click();
+    }
+  </script>
 
-    link.href = window.URL.createObjectURL(blob);
-    link.download = fileName;
-    link.click();
-  }
-})();
- 
+</body>
+</html>
